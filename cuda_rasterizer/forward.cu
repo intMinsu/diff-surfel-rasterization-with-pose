@@ -11,7 +11,6 @@
 
 #include "forward.h"
 #include "auxiliary.h"
-// #include "helper_math.h"
 #include "math.h"
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
