@@ -11,8 +11,11 @@
 
 #include "forward.h"
 #include "auxiliary.h"
+// #include "helper_math.h"
+#include "math.h"
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
+
 namespace cg = cooperative_groups;
 
 // Forward method for converting the input spherical harmonics
@@ -161,6 +164,7 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	const glm::vec3* cam_pos,
 	const int W, int H,
 	const float tan_fovx, const float tan_fovy,
+	const float cx, float cy,
 	const float focal_x, const float focal_y,
 	int* radii,
 	float2* points_xy_image,
@@ -269,7 +273,8 @@ renderCUDA(
 	uint32_t* __restrict__ n_contrib,
 	const float* __restrict__ bg_color,
 	float* __restrict__ out_color,
-	float* __restrict__ out_others)
+	float* __restrict__ out_others,
+	int * __restrict__ n_touched)
 {
 	// Identify current tile and associated min/max pixel range.
 	auto block = cg::this_thread_block();
@@ -351,26 +356,19 @@ renderCUDA(
 			const float3 Tu = collected_Tu[j];
 			const float3 Tv = collected_Tv[j];
 			const float3 Tw = collected_Tw[j];
-			// Transform the two planes into local u-v system. 
 			float3 k = pix.x * Tw - Tu;
 			float3 l = pix.y * Tw - Tv;
-			// Cross product of two planes is a line, Eq. (9)
 			float3 p = cross(k, l);
 			if (p.z == 0.0) continue;
-			// Perspective division to get the intersection (u,v), Eq. (10)
 			float2 s = {p.x / p.z, p.y / p.z};
 			float rho3d = (s.x * s.x + s.y * s.y); 
-			// Add low pass filter
 			float2 d = {xy.x - pixf.x, xy.y - pixf.y};
 			float rho2d = FilterInvSquare * (d.x * d.x + d.y * d.y); 
+
+			// compute intersection and depth
 			float rho = min(rho3d, rho2d);
-
-			// compute depth
-			float depth = (s.x * Tw.x + s.y * Tw.y) + Tw.z;
-			// if a point is too small, its depth is not reliable?
-			// depth = (rho3d <= rho2d) ? depth : Tw.z 
+			float depth = (rho3d <= rho2d) ? (s.x * Tw.x + s.y * Tw.y) + Tw.z : Tw.z; 
 			if (depth < near_n) continue;
-
 			float4 nor_o = collected_normal_opacity[j];
 			float normal[3] = {nor_o.x, nor_o.y, nor_o.z};
 			float opa = nor_o.w;
@@ -416,6 +414,10 @@ renderCUDA(
 			// Eq. (3) from 3D Gaussian splatting paper.
 			for (int ch = 0; ch < CHANNELS; ch++)
 				C[ch] += features[collected_id[j] * CHANNELS + ch] * w;
+			
+			if (test_T > 0.5f) {
+				atomicAdd(&(n_touched[collected_id[j]]), 1);
+			}
 			T = test_T;
 
 			// Keep track of last range entry to update this
@@ -430,8 +432,9 @@ renderCUDA(
 	{
 		final_T[pix_id] = T;
 		n_contrib[pix_id] = last_contributor;
-		for (int ch = 0; ch < CHANNELS; ch++)
+		for (int ch = 0; ch < CHANNELS; ch++){
 			out_color[ch * H * W + pix_id] = C[ch] + T * bg_color[ch];
+		}
 
 #if RENDER_AXUTILITY
 		n_contrib[pix_id + H * W] = median_contributor;
@@ -462,7 +465,8 @@ void FORWARD::render(
 	uint32_t* n_contrib,
 	const float* bg_color,
 	float* out_color,
-	float* out_others)
+	float* out_others,
+	int* n_touched)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
@@ -478,7 +482,8 @@ void FORWARD::render(
 		n_contrib,
 		bg_color,
 		out_color,
-		out_others);
+		out_others,
+		n_touched);
 }
 
 void FORWARD::preprocess(int P, int D, int M,
@@ -496,6 +501,7 @@ void FORWARD::preprocess(int P, int D, int M,
 	const glm::vec3* cam_pos,
 	const int W, const int H,
 	const float focal_x, const float focal_y,
+	const float cx, float cy,
 	const float tan_fovx, const float tan_fovy,
 	int* radii,
 	float2* means2D,
@@ -523,6 +529,7 @@ void FORWARD::preprocess(int P, int D, int M,
 		cam_pos,
 		W, H,
 		tan_fovx, tan_fovy,
+		cx, cy,
 		focal_x, focal_y,
 		radii,
 		means2D,

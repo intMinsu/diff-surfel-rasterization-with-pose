@@ -36,6 +36,7 @@ namespace FORWARD
 		const glm::vec3* cam_pos,
 		const int W, int H,
 		const float focal_x, float focal_y,
+		const float cx, float cy,
 		const float tan_fovx, float tan_fovy,
 		int* radii,
 		float2* points_xy_image,
@@ -65,7 +66,8 @@ namespace FORWARD
 		uint32_t* n_contrib,
 		const float* bg_color,
 		float* out_color,
-		float* out_others);
+		float* out_others,
+		int* n_touched);
 }
 
 

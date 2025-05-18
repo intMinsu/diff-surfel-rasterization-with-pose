@@ -213,11 +213,13 @@ int CudaRasterizer::Rasterizer::forward(
 	const float* viewmatrix,
 	const float* projmatrix,
 	const float* cam_pos,
+	const float cx, float cy,
 	const float tan_fovx, float tan_fovy,
 	const bool prefiltered,
 	float* out_color,
 	float* out_others,
 	int* radii,
+	int* n_touched,
 	bool debug)
 {
 	const float focal_y = height / (2.0f * tan_fovy);
@@ -261,6 +263,7 @@ int CudaRasterizer::Rasterizer::forward(
 		(glm::vec3*)cam_pos,
 		width, height,
 		focal_x, focal_y,
+		cx, cy,
 		tan_fovx, tan_fovy,
 		radii,
 		geomState.means2D,
@@ -336,7 +339,8 @@ int CudaRasterizer::Rasterizer::forward(
 		imgState.n_contrib,
 		background,
 		out_color,
-		out_others), debug)
+		out_others,
+		n_touched), debug)
 
 	return num_rendered;
 }
@@ -356,7 +360,9 @@ void CudaRasterizer::Rasterizer::backward(
 	const float* transMat_precomp,
 	const float* viewmatrix,
 	const float* projmatrix,
-	const float* campos,
+    const float* projmatrix_raw,
+    const float* campos,
+	const float cx, float cy,	
 	const float tan_fovx, float tan_fovy,
 	const int* radii,
 	char* geom_buffer,
@@ -373,6 +379,7 @@ void CudaRasterizer::Rasterizer::backward(
 	float* dL_dsh,
 	float* dL_dscale,
 	float* dL_drot,
+	float* dL_dtau,
 	bool debug)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
@@ -434,7 +441,9 @@ void CudaRasterizer::Rasterizer::backward(
 		transMat_ptr,
 		viewmatrix,
 		projmatrix,
+		projmatrix_raw,
 		focal_x, focal_y,
+		cx, cy,
 		tan_fovx, tan_fovy,
 		(glm::vec3*)campos,
 		(float3*)dL_dmean2D, // gradient inputs
@@ -444,5 +453,6 @@ void CudaRasterizer::Rasterizer::backward(
 		dL_dsh,
 		(glm::vec3*)dL_dmean3D,
 		(glm::vec2*)dL_dscale,
-		(glm::vec4*)dL_drot), debug)
+		(glm::vec4*)dL_drot, dL_dtau)
+		, debug)
 }

@@ -54,7 +54,9 @@ namespace BACKWARD
 		const float* transMats,
 		const float* view,
 		const float* proj,
-		const float focal_x, const float focal_y,
+		const float* projmatrix_raw,
+		const float focal_x, float focal_y,
+		const float cx, float cy,
 		const float tan_fovx, const float tan_fovy,
 		const glm::vec3* campos,
 		float3* dL_dmean2D,
@@ -64,7 +66,8 @@ namespace BACKWARD
 		float* dL_dsh,
 		glm::vec3* dL_dmeans,
 		glm::vec2* dL_dscale,
-		glm::vec4* dL_drot);
+		glm::vec4* dL_drot,
+		float* dL_dtau);
 }
 
 #endif

@@ -29,7 +29,7 @@
 
 // distortion helper macros
 #define BACKFACE_CULL 1
-#define DUAL_VISIABLE 1
+#define DUAL_VISIABLE 0
 // #define NEAR_PLANE 0.2
 // #define FAR_PLANE 100.0
 #define DETACH_WEIGHT 0
@@ -152,19 +152,19 @@ __forceinline__ __device__ float4 dnormvdv(float4 v, float4 dv)
 	return dnormvdv;
 }
 
-__forceinline__ __device__ float3 cross(float3 a, float3 b){return make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);}
+// __forceinline__ __device__ float3 cross(float3 a, float3 b){return make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);}
 
-__forceinline__ __device__ float3 operator*(float3 a, float3 b){return make_float3(a.x * b.x, a.y * b.y, a.z*b.z);}
+// __forceinline__ __device__ float3 operator*(float3 a, float3 b){return make_float3(a.x * b.x, a.y * b.y, a.z*b.z);}
 
-__forceinline__ __device__ float2 operator*(float2 a, float2 b){return make_float2(a.x * b.x, a.y * b.y);}
+// __forceinline__ __device__ float2 operator*(float2 a, float2 b){return make_float2(a.x * b.x, a.y * b.y);}
 
-__forceinline__ __device__ float3 operator*(float f, float3 a){return make_float3(f * a.x, f * a.y, f * a.z);}
+// __forceinline__ __device__ float3 operator*(float f, float3 a){return make_float3(f * a.x, f * a.y, f * a.z);}
 
-__forceinline__ __device__ float2 operator*(float f, float2 a){return make_float2(f * a.x, f * a.y);}
+// __forceinline__ __device__ float2 operator*(float f, float2 a){return make_float2(f * a.x, f * a.y);}
 
-__forceinline__ __device__ float3 operator-(float3 a, float3 b){return make_float3(a.x - b.x, a.y - b.y, a.z - b.z);}
-
-__forceinline__ __device__ float2 operator-(float2 a, float2 b){return make_float2(a.x - b.x, a.y - b.y);}
+// __forceinline__ __device__ float3 operator-(float3 a, float3 b){return make_float3(a.x - b.x, a.y - b.y, a.z - b.z);}
+// 
+// __forceinline__ __device__ float2 operator-(float2 a, float2 b){return make_float2(a.x - b.x, a.y - b.y);}
 
 __forceinline__ __device__ float sumf3(float3 a){return a.x + a.y + a.z;}
 
