@@ -1,4 +1,6 @@
 # Differential Surfel Rasterization for Camera Pose Optimization
+* This fork changed package name from diff_surfel_rasterization to diff_surfel_rasterization_with_pose for usage.
+
 This repository provides an implementation of a 2D Gaussian rasterizer enhanced with analytic Jacobians for camera pose optimization. The code builds upon the original [2DGS implementation](https://github.com/hbb1/diff-surfel-rasterization) and is used in our CVPR 2025 paper ["4DTAM: Non-rigid Tracking and Mapping via Dynamic Surface Gaussians"](https://muskie82.github.io/4dtam/).
 
 If you find this code helpful in your research, we kindly ask that you cite our work.
