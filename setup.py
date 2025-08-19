@@ -20,7 +20,7 @@ setup(
     version='0.0.1',
     ext_modules=[
         CUDAExtension(
-            name="diff_surfel_rasterization._C",
+            name="diff_surfel_rasterization_with_pose._C",
             sources=[
             "cuda_rasterizer/rasterizer_impl.cu",
             "cuda_rasterizer/forward.cu",
